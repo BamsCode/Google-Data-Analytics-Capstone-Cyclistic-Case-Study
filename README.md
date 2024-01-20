@@ -55,7 +55,7 @@ There are 12 files with naming convention of YYYYMM-divvy-tripdata and each file
 Process
 R is used to combine the various datasets into one dataset and clean it.
 Reason:
-A worksheet can only have 1,048,576 rows in Microsoft Excel because of its inability to manage large amounts of data. Because the Cyclistic dataset has more than 5.6 million rows, it is essential to use a platform like BigQuery that supports huge volumes of data.
+A worksheet can only have 1,048,576 rows in Microsoft Excel because of its inability to manage large amounts of data. Because the Cyclistic dataset has more than 5.6 million rows, it is essential to use a platform like R/ BigQuery that supports huge volumes of data.
 
 Combining the Data
 R: Data Combining
