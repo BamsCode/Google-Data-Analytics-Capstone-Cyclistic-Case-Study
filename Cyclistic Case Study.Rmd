@@ -1,0 +1,170 @@
+---
+title: "Bike Project"
+author: "Big Bams"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Google Data Analytics Capstone: Cyclistic Case Study
+
+I am assuming to be a junior data analyst working in the marketing analyst team at Cyclistic, a bike-share company in Chicago. The director of marketing believes the company's future success depends on maximizing the number of annual memberships. Therefore, my team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, my team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve our recommendations, so they must be backed up with compelling data insights and professional data visualizations.
+
+```{r cars}
+summary(cars)
+```
+
+### Ask Business Task
+
+Devise marketing strategies to convert casual riders to members.
+
+### Analysis Questions
+
+Three questions will guide the future marketing program:
+
+1.How do annual members and casual riders use Cyclistic bikes differently?\
+2.Why would casual riders buy Cyclistic annual memberships?\
+3.How can Cyclistic use digital media to influence casual riders to become members?
+
+### using R and Tableau
+
+In this case study, I will perform many real-world tasks of a junior data analyst at a fictional company, Cyclistic. In order to answer the key business questions, I will follow the steps of the data analysis process: Ask, Prepare, Process, Analyze, Share, and Act.
+
+You Can View the plots, for example:
+
+![Monthly Trends](images/Sheet%202.png)
+
+```{r path}
+ #setting the working directory
+    setwd("C:\Users\Bams_Stream\Desktop\Project_1\csv_files")
+
+    path <- file.path("C:", "Users", "Bams_Stream", "Desktop","Life Of Data" , "Project_1","csv_files")
+    setwd(path)
+
+```
+
+```{r library}
+ #Next, we will be loading all the packages needed to perform the data manipulation.
+
+ library(tidyverse)
+ library(dplyr)
+ library(lubridate)
+
+```
+
+```{r combining data}
+
+   #get all the files with .csv data type
+    #in the working directory which is our folder containing the data
+    #and assign it to a variable
+    aggregate_files <- list.files(pattern = "*.csv")
+
+    #read the .csv files in the aggregate_files
+    #and map it into a single data frame
+
+    aggregate_data <- map_df(aggregate_files, read_csv)
+```
+
+```{r View combine Data}
+ View(aggregate_data)
+
+```
+
+```{r cleaning of the data}
+    #I will create a new data frame with a clean data, and we will name it as cyclistic_clean_data).
+    #I created a new column called ride_length for the "difftime" in ended_at,started_at
+    cyclistic_clean_data <- aggregate_data %>% 
+      select("ride_id", "rideable_type", "started_at", "ended_at",
+             "start_station_name", "end_station_name", "member_casual") %>% 
+      na.omit() %>% 
+      mutate(ride_length = as.numeric(difftime(ended_at, started_at, units = "mins")),
+             weekday = format(as.Date(started_at), "%A")) %>% 
+      select("ride_id", "rideable_type","started_at", "ended_at", "start_station_name", "end_station_name",
+             "weekday", "ride_length", "member_casual") %>% 
+      filter(ride_length >=1, ride_length <= (24*60))
+
+```
+
+```{r Max_min}
+   min(cyclistic_clean_data$ride_length)    # min is 1
+    max(cyclistic_clean_data$ride_length)    # max is 1439.867
+
+```
+
+```{r cars}
+
+    #we’ll try to search if there are NA values in each of the columns
+    colSums(is.na(cyclistic_clean_data))
+
+    #check if there are any duplicate ride_id
+
+    any(duplicated(cyclistic_clean_data$ride_id))
+
+    #Lastly, I want to check the structure of the clean data frame
+    str(cyclistic_clean_data)
+
+    #we want to save the cleaned data
+
+    write.csv(cyclistic_clean_data,"clean_data.csv",row.names=FALSE)
+```
+
+```{r month_count}
+```
+
+```{r month_count}
+#The question : How do annual members and casual riders use Cyclistic bikes differently?
+
+    #Let compare the number of ride per month
+
+    # To do this we can create a data frame in RStudio extracting the columns from the cyclistic_clean_data,
+    # which are the started_at column (change the datetime to its equivalent month) and the member_casual column.
+    # We will be adding a row_count column to count the bike rides each month.
+
+    month_count = cyclistic_clean_data %>% 
+      group_by(months = month.name[month(started_at)], member_casual) %>% 
+      summarize(row_count = n()) %>% 
+      arrange(match(months,month.name))
+    #save the data frame to import into tableau
+    write.csv(month_count, "month count.csv", row.names=FALSE)
+
+    head(month_count)
+```
+
+```{r}
+    #Importing the clean data again into R For the Analysis
+    
+    clean_data <- read.csv('clean_data')
+
+    #we want to calculate for weekdays
+    days_count = clean_data %>% 
+      group_by(weekday, member_casual) %>% 
+      summarize(ride_count = n()) %>%
+      arrange(weekday)
+    #save the data frame to import into tableau
+    write.csv(days_count, "days_count.csv", row.names=FALSE)
+    # we want to know the stations where we have the  highest casual customers
+    casual_st <- clean_data%>%
+      filter(member_casual== 'casual') %>%
+      select(start_station_name,member_casual)
+      print(casual_st)
+      #save the data frame to import into tableau
+      write.csv(casual_st, "casual_st.csv", row.names=FALSE)
+```
+
+```{r}
+      # we want to know the stations where we have the  highest casual customers
+      casual_sta = clean_data%>%
+        filter(member_casual == "casual")%>%
+        group_by(start_station_name) %>%
+        summarise(usage_count = n())%>%
+        arrange(desc(usage_count)) 
+      View(casual_sta)
+        #save the data frame to import into tableau
+        write.csv(casual_sta, "casual_station.csv", row.names=FALSE)
+      
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
